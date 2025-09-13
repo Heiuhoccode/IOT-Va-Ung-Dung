@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Biển số xe</title>
+</head>
+<body>
+    <h2>Camera nhận diện biển số</h2>
+    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+
+    <h3>Biển số: <span id="plate">Đang nhận diện...</span></h3>
+    <h3>Trạng thái: <span id="status">...</span></h3>
+
+    <script>
+        async function fetchPlate() {
+            const res = await fetch("/plate");
+            const data = await res.json();
+            document.getElementById("plate").innerText = data.plate;
+
+            if (data.plate && data.plate !== "Chưa nhận diện" && data.plate !== "Không nhận dạng được") {
+                // gọi luôn API verify
+                const verifyRes = await fetch(`/verify_plate/${encodeURIComponent(data.plate)}`);
+                const verifyData = await verifyRes.json();
+                document.getElementById("status").innerText = verifyData.status;
+            } else {
+                document.getElementById("status").innerText = "Chưa có dữ liệu từ camera";
+            }
+        }
+        setInterval(fetchPlate, 1000);
+    </script>
+</body>
+</html>
