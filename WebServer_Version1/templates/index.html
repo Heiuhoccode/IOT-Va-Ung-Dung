@@ -1,31 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Biển số xe</title>
+    <meta charset="UTF-8">
+    <title>Smart Parking Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .video-box {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .video-box img {
+            border: 3px solid #333;
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+        table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .status-available {
+            color: green;
+            font-weight: bold;
+        }
+        .status-unavailable {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h2>Camera nhận diện biển số</h2>
-    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+<div class="container py-4">
+    <h2 class="text-center mb-4">🚗 Smart Parking Dashboard</h2>
 
-    <h3>Biển số: <span id="plate">Đang nhận diện...</span></h3>
-    <h3>Trạng thái: <span id="status">...</span></h3>
+    <!-- Video Stream -->
+    <div class="video-box">
+        <img src="{{ url_for('video_feed') }}" alt="Camera stream">
+    </div>
 
-    <script>
-        async function fetchPlate() {
-            const res = await fetch("/plate");
-            const data = await res.json();
-            document.getElementById("plate").innerText = data.plate;
+    <!-- Parking Status Table -->
+    <h4>Danh sách chỗ đỗ</h4>
+    <table class="table table-striped text-center" id="parking-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Chỗ</th>
+                <th>Trạng thái</th>
+                <th>Biển số</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dữ liệu sẽ được load qua AJAX -->
+        </tbody>
+    </table>
+</div>
 
-            if (data.plate && data.plate !== "Chưa nhận diện" && data.plate !== "Không nhận dạng được") {
-                // gọi luôn API verify
-                const verifyRes = await fetch(`/verify_plate/${encodeURIComponent(data.plate)}`);
-                const verifyData = await verifyRes.json();
-                document.getElementById("status").innerText = verifyData.status;
-            } else {
-                document.getElementById("status").innerText = "Chưa có dữ liệu từ camera";
-            }
+<!-- JS: Fetch parking status -->
+<script>
+async function loadParkingStatus() {
+    try {
+        let res = await fetch("/parking_status");
+        let data = await res.json();
+
+        let tbody = document.querySelector("#parking-table tbody");
+        tbody.innerHTML = "";
+
+        for (let slot in data) {
+            let status = data[slot].status;
+            let plate = data[slot].plate || "-";
+
+            let row = `
+                <tr>
+                    <td>${slot}</td>
+                    <td class="${status === 'available' ? 'status-available' : 'status-unavailable'}">
+                        ${status === 'available' ? 'Còn trống' : 'Đã chiếm'}
+                    </td>
+                    <td>${plate}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
         }
-        setInterval(fetchPlate, 1000);
-    </script>
+    } catch (err) {
+        console.error("Lỗi load parking status:", err);
+    }
+}
+
+// Refresh mỗi 3 giây
+setInterval(loadParkingStatus, 3000);
+loadParkingStatus();
+</script>
 </body>
 </html>
