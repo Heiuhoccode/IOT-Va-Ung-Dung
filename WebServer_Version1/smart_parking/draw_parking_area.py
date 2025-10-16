@@ -2,11 +2,11 @@ import cv2
 
 print("[INFO] Loading parking lot image ...")
 
-image = "smart_parking/parking_lot.png"
+image = "G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_lot.png"
 
 img = cv2.imread(image)
 
-file = open("smart_parking/parking_area_coordinates.txt","r+")
+file = open("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_area_coordinates.txt","r+")
 
 file.truncate(0)
 
@@ -73,9 +73,9 @@ while True:
 
         print("[INFO] Number of parking lots: {}".format(parking_lot))
         
-        cv2.imwrite("smart_parking/parking_lot.png", img)
+        cv2.imwrite("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_lot.png", img)
         
-        with open('smart_parking/parking_area_coordinates.txt', 'a') as file:
+        with open('G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_area_coordinates.txt', 'a') as file:
             
             file.write("{} {} {} {}\n". format(a, b, c, d))
         

@@ -1,6 +1,6 @@
 import cv2
 
-car_cascade = cv2.CascadeClassifier('smart_parking/cars.xml')
+car_cascade = cv2.CascadeClassifier('G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/cars.xml')
 
 def parking_lot_status(filename):
     if filename is None or filename.size == 0:

@@ -3,7 +3,7 @@ from smart_parking.parking_lot_status import parking_lot_status
 
 parking_lot_image = sorted(glob.glob("parking_lots/*.png"))
 
-file = open("smart_parking/parking_area_coordinates.txt")
+file = open("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_area_coordinates.txt")
 
 lines = file.readlines()
 

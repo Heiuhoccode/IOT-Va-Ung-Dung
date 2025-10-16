@@ -2,19 +2,19 @@ import cv2
 
 print("[INFO] Loading parking lots ...")
 
-img = cv2.imread("smart_parking/parking_lot.png")
+img = cv2.imread("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_lot.png")
 
 print("[INFO] Parking lots loaded successfully!")
 
 print("[NOTE] Please enter the parking lot lable as shown on the screen (yellow area)")
 
-file = open("smart_parking/parking_labels.txt","r+")
+file = open("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_labels.txt","r+")
 
 file.truncate(0)
 
 file.close()
 
-file = open("smart_parking/parking_area_coordinates.txt")
+file = open("G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_area_coordinates.txt")
 
 lines = file.readlines()
 
@@ -70,7 +70,7 @@ for i in range(len(parking_lot_coords)):
 
     parking_label = input("Enter this parking label: ")
 
-    with open('smart_parking/parking_labels.txt', 'a') as file:
+    with open('G:/Nam4_Ki1/IOTvaUngDung/Code/WebServer_Version1/smart_parking/parking_labels.txt', 'a') as file:
 
         file.write("{}\n".format(parking_label))
 
