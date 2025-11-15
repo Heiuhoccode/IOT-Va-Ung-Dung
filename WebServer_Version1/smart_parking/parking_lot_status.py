@@ -7,7 +7,8 @@ def parking_lot_status(filename):
         return "available"  # mặc định coi như trống nếu ảnh không hợp lệ
 
     gray = cv2.cvtColor(filename, cv2.COLOR_BGR2GRAY)
-    detected_cars = car_cascade.detectMultiScale(gray, 1.1, 1)
+    # detected_cars = car_cascade.detectMultiScale(gray, 1.1, 1)
+    detected_cars = car_cascade.detectMultiScale(gray, 1.01, 4)
 
     if len(detected_cars) == 0:
     
@@ -15,4 +16,4 @@ def parking_lot_status(filename):
 
     elif len(detected_cars) > 0:
 
-        return "unavailable"
+        return "occupied"

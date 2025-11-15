@@ -21,7 +21,7 @@ mqtt_client.loop_start()
 
 # ==================== CAMERA CONFIG ====================
 ocr_plate = OcrPlate("model/best_plate.pt", "model/best_ocr.pt")
-cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("[ERROR] Cannot open camera")
 
@@ -45,64 +45,27 @@ def index():
 # =======================================================
 @app.route('/video_feed')
 def video_feed():
-    # def gen_frames():
-    #     global last_status, last_sent
-    #
-    #     while True:
-    #         ret, frame = cap.read()
-    #         if not ret:
-    #             continue
-    #
-    #         status = {}
-    #         for i, coords in enumerate(parking_lot_coords):
-    #             slot_name = labels[i]
-    #             slot_img = frame[coords[1]:coords[3], coords[0]:coords[2]]
-    #             lot_status = parking_lot_status(slot_img)
-    #             plate_number = None
-    #
-    #             if lot_status == "available":
-    #                 color = (0, 255, 0)
-    #                 text = slot_name
-    #                 status[slot_name] = {"status": "available", "plate": None}
-    #             else:
-    #                 color = (0, 0, 255)
-    #                 ocr_plate.set_data(slot_img)
-    #                 plate_number = (
-    #                     ocr_plate.digit_out if ocr_plate.digit_out != "unknow" else "???"
-    #                 )
-    #                 text = f"{slot_name}: {plate_number}"
-    #                 status[slot_name] = {"status": "occupied", "plate": plate_number}
-    #
-    #             # ===== Publish MQTT nếu thay đổi =====
-    #             current = {"status": lot_status, "plate": plate_number}
-    #             if last_sent.get(slot_name) != current:
-    #                 payload = {
-    #                     "slot": slot_name,
-    #                     "status": lot_status,
-    #                     "plate": plate_number,
-    #                     "ts": time.strftime("%Y-%m-%dT%H:%M:%S")
-    #                 }
-    #                 mqtt_client.publish("camera/slot", json.dumps(payload))
-    #                 last_sent[slot_name] = current
-    #                 print("[MQTT] Updated:", payload)
-    #
-    #             # ===== Vẽ khung =====
-    #             cv2.rectangle(frame, (coords[0], coords[1]), (coords[2], coords[3]), color, 2)
-    #             cv2.putText(frame, text, (coords[0], coords[1] - 5),
-    #                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-    #
-    #         last_status = status
-    #
-    #         # Stream frame (không delay)
-    #         ret, buffer = cv2.imencode('.jpg', frame)
-    #         if not ret:
-    #             continue
-    #
-    #         yield (b'--frame\r\n'
-    #                b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
     def gen_frames():
         global last_status, last_sent
+
+        #Thêm mới hôm 11/11
+        slot_memory = {}  # lưu trạng thái và thời gian phát hiện cuối
+        def stable_status(slot_name, current_status, stable_time=5.0):
+            now = time.time()
+            prev = slot_memory.get(slot_name, {"status": None, "time": now})
+
+            if current_status != prev["status"]:
+                # Nếu mới thay đổi -> reset thời gian
+                slot_memory[slot_name] = {"status": current_status, "time": now}
+                return prev["status"]  # vẫn giữ trạng thái cũ cho đến khi ổn định
+
+            # Nếu cùng trạng thái quá stable_time giây -> chấp nhận
+            if now - prev["time"] >= stable_time:
+                return current_status
+            return prev["status"]
+        #Thêm mới hôm 11/11
+
         changed = False
         last_publish_time = time.time()
         last_published_payload = None  # <--- thêm dòng này
@@ -117,6 +80,7 @@ def video_feed():
                 slot_name = labels[i]
                 slot_img = frame[coords[1]:coords[3], coords[0]:coords[2]]
                 lot_status = parking_lot_status(slot_img)
+                lot_status = stable_status(slot_name, lot_status, stable_time=5.0) #thêm ngày 11/11
                 plate_number = None
 
                 if lot_status == "available":
@@ -132,6 +96,14 @@ def video_feed():
                     text = f"{slot_name}: {plate_number}"
                     status[slot_name] = {"status": "occupied", "plate": plate_number}
 
+                    # Nếu OCR lỗi ("???") thì lấy lại biển số cũ trong last_status nếu có
+                    if plate_number == "???" and slot_name in last_status:
+                        prev_plate = last_status[slot_name].get("plate")
+                        if prev_plate:
+                            plate_number = prev_plate
+                            status[slot_name]["plate"] = prev_plate
+                            text = f"{slot_name}: {prev_plate}"
+
                 current = {"status": lot_status, "plate": plate_number}
                 if last_sent.get(slot_name) != current:
                     last_sent[slot_name] = current
@@ -146,16 +118,18 @@ def video_feed():
             # ===== Publish MQTT mỗi 2.5 giây nếu có thay đổi và payload khác =====
             current_time = time.time()
             if current_time - last_publish_time >= 2.5:
-                payload = {
-                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                    "slots": last_sent
-                }
+                payload = last_sent
 
                 # So sánh payload với lần publish trước
-                if not last_published_payload or last_published_payload["slots"] != payload["slots"]:
+                # if not last_published_payload or last_published_payload["slots"] != payload["slots"]:
+                #     mqtt_client.publish("camera/slots", json.dumps(payload))
+                #     print("[MQTT] Updated all slots:", json.dumps(payload, indent=2))
+                #     last_published_payload = {"slots": payload["slots"].copy()}
+                if not last_published_payload or last_published_payload != payload:
                     mqtt_client.publish("camera/slots", json.dumps(payload))
                     print("[MQTT] Updated all slots:", json.dumps(payload, indent=2))
-                    last_published_payload = {"slots": payload["slots"].copy()}
+                    last_published_payload = payload.copy()
+
                 else:
                     # Không gửi vì dữ liệu giống hệt
                     pass

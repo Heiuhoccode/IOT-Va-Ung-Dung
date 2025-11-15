@@ -98,5 +98,5 @@ và dict giải mã của label (labels_encoder), trả về kí tự hoàn ch�
             data_center_labe = data_center_labe[data_center_labe[:, 0].argsort()]
             out_ocr = ''.join([labels_encoder[item] for item in data_center_labe[:,-1]])
             
-            out_ocr = out_ocr[:3] + ' - ' + out_ocr[3:]
+            out_ocr = out_ocr[:3] + '-' + out_ocr[3:]
         return out_ocr
