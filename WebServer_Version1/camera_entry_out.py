@@ -17,7 +17,7 @@ mqtt_client.loop_start()
 ocr = OcrPlate("model/best_plate.pt", "model/best_ocr.pt")
 cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 if not cap.isOpened():
-    print("[ERROR] Cannot open camera 1")
+    print("[ERROR] Cannot open camera 3")
 
 # ==================== LOGIC ====================
 last_plate = None          # Biển số lần trước đã publish
@@ -34,9 +34,11 @@ while True:
     if plate != "unknow":
         current_time = time.time()
         # Publish nếu biển số thay đổi HOẶC đã hơn 3 giây kể từ lần gửi gần nhất
-        if plate != last_plate and current_time-last_publish_time > 5:
+        if current_time-last_publish_time > 10:
+        # if plate != last_plate :
             payload = {
                 "plate": plate,
+                "status": "out",
                 "ts": time.strftime("%Y-%m-%dT%H:%M:%S")
             }
             mqtt_client.publish("camera/entry", json.dumps(payload))
