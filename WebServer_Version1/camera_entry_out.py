@@ -1,5 +1,5 @@
 import cv2, json, time, paho.mqtt.client as mqtt
-from OcrPlate import OcrPlate
+from OcrPlate_cu import OcrPlate
 
 # ==================== MQTT CONFIG ====================
 MQTT_BROKER = "4e01ee67ec4e475ca4c3b68e2703f19e.s1.eu.hivemq.cloud"

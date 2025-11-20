@@ -130,7 +130,7 @@ def gen_slot():
             #     last_published_payload = {"slots": payload["slots"].copy()}
             if not last_published_payload or last_published_payload != payload:
                 mqtt_client.publish("camera/slots", json.dumps(payload))
-                print("[MQTT] Updated all slots:", json.dumps(payload, indent=2))
+                print("[Camera Slot-> Server]:", json.dumps(payload, indent=2))
                 last_published_payload = payload.copy()
 
             else:
@@ -162,14 +162,14 @@ def gen_entry_in():
 
         if plate != "unknow":
             current_time = time.time()
-            if current_time - last_publish_time > 10:
+            if current_time - last_publish_time > 5 or last_plate!=plate:
                 payload = {
                     "plate": plate,
                     "status": "in",
                     "ts": time.strftime("%Y-%m-%dT%H:%M:%S")
                 }
                 mqtt_client.publish("camera/entry", json.dumps(payload))
-                print("[MQTT IN] Published:", payload)
+                print("[Camera In -> Server]:", payload)
                 last_plate = plate
                 last_publish_time = current_time
 
@@ -196,14 +196,14 @@ def gen_entry_out():
 
         if plate != "unknow":
             current_time = time.time()
-            if current_time - last_publish_time > 10:
+            if current_time - last_publish_time > 5 or last_plate!=plate:
                 payload = {
                     "plate": plate,
                     "status": "out",
                     "ts": time.strftime("%Y-%m-%dT%H:%M:%S")
                 }
                 mqtt_client.publish("camera/entry", json.dumps(payload))
-                print("[MQTT OUT] Published:", payload)
+                print("[Camera Out -> Server]:", payload)
                 last_plate = plate
                 last_publish_time = current_time
 

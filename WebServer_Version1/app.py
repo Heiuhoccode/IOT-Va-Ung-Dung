@@ -3,7 +3,7 @@ import os
 import numpy as np
 from flask import Flask, render_template, Response, jsonify
 import cv2
-from OcrPlate import OcrPlate
+from OcrPlate_cu import OcrPlate
 from smart_parking.parking_lot_status import parking_lot_status
 
 app = Flask(__name__)
